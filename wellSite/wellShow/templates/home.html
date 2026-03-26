@@ -1,7 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Well Water Levels</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 <body>
-    <h1>Well in that case</h1>
-    <p>This project tracks the water levels in your well and creates statistics.</p>
+
+<h1>Well Water Levels</h1>
+<p>This project tracks water levels and visualizes them.</p>
+
+<canvas id="wellChart" width="600" height="300"></canvas>
+
+<script>
+    const labels = JSON.parse('{{ labels|escapejs }}');
+    const data = JSON.parse('{{ data|escapejs }}');
+
+    const ctx = document.getElementById('wellChart').getContext('2d');
+
+    const wellChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Water Level',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Depth'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
 </body>
 </html>
