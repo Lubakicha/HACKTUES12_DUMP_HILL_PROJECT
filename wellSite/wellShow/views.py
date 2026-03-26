@@ -2,24 +2,48 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Well, Record
+from .models import *
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 
 
 # 📊 Show graph
+@login_required
+@login_required
 def home(request):
-    wells = Well.objects.all().order_by('created_at')
+    wells = Well.objects.filter(user=request.user).order_by('created_at')
 
-    labels = [w.created_at.strftime("%H:%M:%S") for w in wells]
-    data = [w.depth for w in wells]
+    selected_well_id = request.GET.get('well')
+    selected_well = None
+
+    if selected_well_id:
+        try:
+            selected_well = wells.get(well_id=selected_well_id)
+        except Well.DoesNotExist:
+            selected_well = None
+
+    # if selected → show only that well
+    if selected_well:
+        labels = [selected_well.created_at.strftime("%H:%M:%S")]
+        data = [selected_well.depth]
+    else:
+        labels = [w.created_at.strftime("%H:%M:%S") for w in wells]
+        data = [w.depth for w in wells]
 
     context = {
+        'wells': wells,
+        'selected_well': selected_well,
         'labels': json.dumps(labels),
         'data': json.dumps(data),
     }
+
     return render(request, 'home.html', context)
-
-
 # 📥 Receive record (JSON POST)
+@login_required
 @csrf_exempt
 def receive_record(request):
     if request.method == 'POST':
@@ -29,7 +53,8 @@ def receive_record(request):
             rec_diff = float(body['distance'])
             rec_well = body['well']
 
-            well = Well.objects.get(well_id=rec_well)
+            # 👇 only allow user's own wells
+            well = Well.objects.get(well_id=rec_well, user=request.user)
 
             Record.objects.create(
                 well_rec=well,
@@ -39,20 +64,25 @@ def receive_record(request):
             return JsonResponse({'message': 'Success'})
 
         except Well.DoesNotExist:
-            return JsonResponse({'message': 'No such well'})
+            return JsonResponse({'message': 'No such well for this user'})
         except Exception as e:
             return JsonResponse({'message': str(e)})
 
     return JsonResponse({'message': 'POST required'})
 
-
 # ➕ Create new well
+
+
+@login_required
 def create_well(request):
     if request.method == 'POST':
         try:
             depth = float(request.POST.get('depth', 0))
 
-            well = Well.objects.create(depth=depth)
+            well = Well.objects.create(
+                depth=depth,
+                user=request.user   # 👈 IMPORTANT
+            )
 
             return JsonResponse({
                 'status': 'success',
@@ -63,3 +93,37 @@ def create_well(request):
             return JsonResponse({'status': 'fail', 'reason': str(e)})
 
     return JsonResponse({'status': 'fail', 'reason': 'POST required'})
+def start(request):
+    return render(request, 'starter_page.html')
+
+
+# LOGIN
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('home')
+        else:
+            return render(request, 'login.html', {'error': 'Invalid credentials'})
+
+    return render(request, 'login.html')
+
+
+# SIGN UP
+def signup_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        try:
+            User.objects.create_user(username=username, password=password)
+            return redirect('login')
+        except:
+            return render(request, 'signup.html', {'error': 'User already exists'})
+
+    return render(request, 'signup.html')
