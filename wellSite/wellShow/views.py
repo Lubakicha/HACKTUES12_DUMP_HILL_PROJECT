@@ -129,6 +129,8 @@ def signup_view(request):
 
         try:
             User.objects.create_user(username=username, password=password)
+            user = User.objects.get(username=username)
+            login(request, user)
             return redirect('home')
         except:
             return render(request, 'signup.html', {'error': 'User already exists'})
