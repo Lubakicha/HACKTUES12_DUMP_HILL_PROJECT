@@ -83,6 +83,7 @@ def create_well_from_event(request, event_id):
 
     name = request.POST.get('name')
     depth = request.POST.get('depth')
+    radius = request.POST.get('radius')
 
     if event.well_id_value:
         Well.objects.get_or_create(
@@ -90,6 +91,7 @@ def create_well_from_event(request, event_id):
             defaults={
                 'name': name,
                 'depth': float(depth),
+                'radius': float(radius),  # ✅ NEW
                 'user': request.user
             }
         )
@@ -126,9 +128,12 @@ def receive_record(request):
                 })
 
             # ✅ Save record if well exists
+            # Convert sensor distance → water height
+            water_height = well.depth - rec_diff
+
             Record.objects.create(
                 well_rec=well,
-                diff=rec_diff
+                diff=water_height
             )
 
             return JsonResponse({
@@ -159,13 +164,15 @@ def create_well(request):
         try:
             #request_context = RequestContext(request)
             depth = float(request.POST.get('depth', 0))
+            radius = float(request.POST.get('radius', 0))  # ✅ NEW
             name = request.POST.get('name')
 
             well = Well.objects.create(
-                name = name,
-                depth=depth,
-                user=request.user   # 👈 IMPORTANT
-            )
+            name=name,
+            depth=depth,
+            radius=radius,  # ✅ NEW
+            user=request.user
+)
             print(well.well_id)
 
             return redirect('home')
