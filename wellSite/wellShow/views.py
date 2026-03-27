@@ -23,27 +23,28 @@ def home(request):
 
     selected_well_id = request.GET.get('well')
     selected_well = None
-    records = None
 
     if selected_well_id:
         try:
             selected_well = wells.get(well_id=selected_well_id)
-            # 👇 get ONLY records for this well
-            records = Record.objects.filter(well_rec=selected_well).order_by('created_at')
         except Well.DoesNotExist:
             selected_well = None
 
-    # 👇 If a well is selected → show its records
-    if selected_well and records:
-        labels = [r.created_at.strftime("%H:%M:%S") for r in records]
-        data = [r.diff for r in records]
+    # ✅ If a well is selected → ONLY its records
+    if selected_well:
+        records = Record.objects.filter(
+            well_rec=selected_well
+        ).order_by('created_at')
 
     else:
-        # 👇 If no well selected → show ALL records (optional behavior)
-        records = Record.objects.filter(well_rec__user=request.user).order_by('created_at')
+        # ✅ If no well selected → all records
+        records = Record.objects.filter(
+            well_rec__user=request.user
+        ).order_by('created_at')
 
-        labels = [r.created_at.strftime("%H:%M:%S") for r in records]
-        data = [r.diff for r in records]
+    # ✅ Always build from records (even if empty)
+    labels = [r.created_at.strftime("%H:%M:%S") for r in records]
+    data = [r.diff for r in records]
 
     context = {
         'wells': wells,
@@ -66,7 +67,8 @@ def receive_record(request):
 
             # 👇 only allow user's own wells
             well = Well.objects.get(well_id=rec_well)
-
+            if (rec_diff > well.depth):
+                return JsonResponse({'message': 'To deep for that well'})
             Record.objects.create(
                 well_rec=well,
                 diff=rec_diff
@@ -94,6 +96,7 @@ def create_well(request):
             name = request.POST.get('name')
 
             well = Well.objects.create(
+                name = name,
                 depth=depth,
                 user=request.user   # 👈 IMPORTANT
             )
