@@ -157,7 +157,13 @@ def receive_record(request):
             # ✅ Save record if well exists
             # Convert sensor distance → water height
             water_height = well.depth - rec_diff
-
+            
+            if water_height < 0 or rec_diff > well.depth:
+                return JsonResponse({
+                'status': 'incorect water level',
+                'well_id': rec_well
+            })
+            print (water_height)
             Record.objects.create(
                 well_rec=well,
                 diff=water_height
