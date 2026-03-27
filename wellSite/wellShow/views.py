@@ -6,7 +6,6 @@ from .models import *
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-from django.template import RequestContext
 from django.contrib.auth.models import User
 from datetime import timedelta
 from django.views.decorators.http import require_POST
