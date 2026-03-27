@@ -23,25 +23,32 @@ def home(request):
 
     selected_well_id = request.GET.get('well')
     selected_well = None
+    records = None
 
     if selected_well_id:
         try:
             selected_well = wells.get(well_id=selected_well_id)
+            # 👇 get ONLY records for this well
+            records = Record.objects.filter(well_rec=selected_well).order_by('created_at')
         except Well.DoesNotExist:
             selected_well = None
 
-    # if selected → show only that well
-    if selected_well:
-        levels = [selected_well.created_at.strftime("%H:%M:%S")]
-        data = [selected_well.depth]
+    # 👇 If a well is selected → show its records
+    if selected_well and records:
+        labels = [r.created_at.strftime("%H:%M:%S") for r in records]
+        data = [r.diff for r in records]
+
     else:
-        levels = [w.created_at.strftime("%H:%M:%S") for w in wells]
-        data = [w.depth for w in wells]
+        # 👇 If no well selected → show ALL records (optional behavior)
+        records = Record.objects.filter(well_rec__user=request.user).order_by('created_at')
+
+        labels = [r.created_at.strftime("%H:%M:%S") for r in records]
+        data = [r.diff for r in records]
 
     context = {
         'wells': wells,
         'selected_well': selected_well,
-        'levels': json.dumps(levels),
+        'labels': json.dumps(labels),
         'data': json.dumps(data),
     }
 
