@@ -11,6 +11,7 @@
 #define PIN_MISO  13
 #define PIN_MOSI  11
 
+const char* device_id="ABCDE";
 const char* ssid = "Home45"; 
 const char* password = "ObichamNikola";
 const char* server = "http://192.168.43.213:8000/receive";
@@ -37,10 +38,11 @@ void send_json(const char* distanceStr) {
   http.begin(server);
   http.addHeader("Content-Type", "application/json");
 
-  String json = "{\"well\":12,\"distance\":";
+  String json = "{\"device_id\":\"";
+  json += device_id;
+  json += "\",\"distance\":";
   json += distanceStr;
   json += "}";
-
   Serial.print("POST JSON: ");
   Serial.println(json);
 
