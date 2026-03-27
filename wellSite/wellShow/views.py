@@ -3,16 +3,21 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import *
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
+#from django.shortcuts import redirect
+#from django.contrib.auth.decorators import login_required
 
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('/')
 
 # 📊 Show graph
-@login_required
+#@login_required
 @login_required
 def home(request):
     wells = Well.objects.filter(user=request.user).order_by('created_at')
@@ -43,7 +48,7 @@ def home(request):
 
     return render(request, 'home.html', context)
 # 📥 Receive record (JSON POST)
-@login_required
+#@login_required
 @csrf_exempt
 def receive_record(request):
     if request.method == 'POST':
@@ -54,7 +59,7 @@ def receive_record(request):
             rec_well = body['well']
 
             # 👇 only allow user's own wells
-            well = Well.objects.get(well_id=rec_well, user=request.user)
+            well = Well.objects.get(well_id=rec_well)
 
             Record.objects.create(
                 well_rec=well,
@@ -93,6 +98,7 @@ def create_well(request):
             return JsonResponse({'status': 'fail', 'reason': str(e)})
 
     return JsonResponse({'status': 'fail', 'reason': 'POST required'})
+
 def start(request):
     return render(request, 'starter_page.html')
 
@@ -122,7 +128,7 @@ def signup_view(request):
 
         try:
             User.objects.create_user(username=username, password=password)
-            return redirect('login')
+            return redirect('home')
         except:
             return render(request, 'signup.html', {'error': 'User already exists'})
 

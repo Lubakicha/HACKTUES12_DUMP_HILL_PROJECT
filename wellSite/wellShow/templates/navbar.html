@@ -1,0 +1,13 @@
+<style>
+    #logout {
+            text-align: right;
+        }
+</style>
+{% if user.is_authenticated%}
+    <p>Hi, {{user.username}} :)</p>
+    <a href="logout/" id="logout">Log Out</a>
+{%else%}
+    <p>You are not logged in</p>
+    <a href="{% url 'login' %}">Login</a>
+{%endif%}
+<hr>
