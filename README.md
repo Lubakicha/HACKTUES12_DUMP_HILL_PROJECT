@@ -33,4 +33,4 @@
 ![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white)
 
 **Components:** E07-M1101D RF Module  
-**Libraries:** Arduino Core, Standard WiFi Library
+**Libraries:** Arduino Core, Standard WiFi Library, RadioLib
