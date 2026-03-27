@@ -86,24 +86,31 @@
         <th>Actions</th>
     </tr>
 
-    {% for event in events %}
-    <tr class="{{ event.event_type }}">
-        <td>{{ event.event_type }}</td>
-        <td>{{ event.message }}</td>
-        <td>{{ event.created_at|date:"Y-m-d H:i:s" }}</td>
+    {% for item in events %}
+    <tr class="{{ item.event.event_type }}">
+        <td>{{ item.event.event_type }}</td>
 
         <td>
-            {% if not event.resolved %}
+            {{ item.event.message }}
+            {% if item.count > 1 %}
+                (x{{ item.count }})
+            {% endif %}
+        </td>
 
-                {% if event.well_id_value %}
+        <td>{{ item.event.created_at|date:"Y-m-d H:i:s" }}</td>
 
-                    <!-- ➕ Toggle Create Form -->
-                    <button onclick="toggleForm('{{ event.id }}')">➕ Create</button>
+        <td>
+            {% if not item.event.resolved %}
+
+                {% if item.event.well_id_value %}
+
+                    <!-- Toggle Create Form -->
+                    <button onclick="toggleForm('{{ item.event.id }}')">➕ Create</button>
 
                     <!-- Hidden Create Form -->
                     <form method="POST"
-                          action="{% url 'create_well_from_event' event.id %}"
-                          id="form-{{ event.id }}"
+                          action="{% url 'create_well_from_event' item.event.id %}"
+                          id="form-{{ item.event.id }}"
                           style="display:none; margin-top:5px;">
                         
                         {% csrf_token %}
@@ -115,8 +122,10 @@
                         <button type="submit">Save</button>
                     </form>
 
-                    <!-- ❌ Ignore -->
-                    <form method="POST" action="{% url 'resolve_event' event.id %}" style="display:inline;">
+                    <!-- Ignore -->
+                    <form method="POST"
+                          action="{% url 'resolve_event' item.event.id %}"
+                          style="display:inline;">
                         {% csrf_token %}
                         <button type="submit">Ignore</button>
                     </form>
@@ -124,7 +133,8 @@
                 {% else %}
 
                     <!-- Generic resolve -->
-                    <form method="POST" action="{% url 'resolve_event' event.id %}">
+                    <form method="POST"
+                          action="{% url 'resolve_event' item.event.id %}">
                         {% csrf_token %}
                         <button type="submit">Mark as resolved</button>
                     </form>

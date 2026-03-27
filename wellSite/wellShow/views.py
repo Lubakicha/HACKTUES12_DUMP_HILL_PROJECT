@@ -8,8 +8,8 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.contrib.auth.models import User
-
-
+from datetime import timedelta
+from django.views.decorators.http import require_POST
 
 
 def logout_view(request):
@@ -59,13 +59,40 @@ def home(request):
 #@login_required
 @csrf_exempt
 @login_required
+
+
 def inbox(request):
     events = Event.objects.order_by('-created_at')[:50]
 
+    grouped = []
+    TIME_WINDOW = timedelta(minutes=5)
+
+    for event in events:
+        if not grouped:
+            grouped.append({
+                "event": event,
+                "count": 1
+            })
+            continue
+
+        last_event = grouped[-1]["event"]
+
+        same_source = event.well_id_value == last_event.well_id_value
+        close_in_time = abs(event.created_at - last_event.created_at) <= TIME_WINDOW
+        same_type = event.event_type == last_event.event_type
+        same_message = event.message == last_event.message
+
+        if same_source and close_in_time and same_type and same_message:
+            grouped[-1]["count"] += 1
+        else:
+            grouped.append({
+                "event": event,
+                "count": 1
+            })
+
     return render(request, 'inbox.html', {
-        'events': events
+        'events': grouped
     })
-from django.views.decorators.http import require_POST
 
 @require_POST
 @login_required

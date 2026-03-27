@@ -8,7 +8,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
 
     # your existing API endpoints
-    path('receive/', views.receive_record, name='receive'),
+    path('receive', views.receive_record, name='receive'),
     path('create/', views.create_well, name='create'),
     path('home/logout/', views.logout_view, name='logout'),
     path('logout/', views.logout_view, name='logout'),
