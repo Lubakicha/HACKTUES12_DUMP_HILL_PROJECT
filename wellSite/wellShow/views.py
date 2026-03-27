@@ -32,16 +32,16 @@ def home(request):
 
     # if selected → show only that well
     if selected_well:
-        labels = [selected_well.created_at.strftime("%H:%M:%S")]
+        levels = [selected_well.created_at.strftime("%H:%M:%S")]
         data = [selected_well.depth]
     else:
-        labels = [w.created_at.strftime("%H:%M:%S") for w in wells]
+        levels = [w.created_at.strftime("%H:%M:%S") for w in wells]
         data = [w.depth for w in wells]
 
     context = {
         'wells': wells,
         'selected_well': selected_well,
-        'labels': json.dumps(labels),
+        'levels': json.dumps(levels),
         'data': json.dumps(data),
     }
 
