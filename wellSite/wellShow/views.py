@@ -7,8 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-#from django.shortcuts import redirect
-#from django.contrib.auth.decorators import login_required
+from django.template import RequestContext
 
 
 
@@ -77,24 +76,26 @@ def receive_record(request):
 
 # ➕ Create new well
 
-
+@csrf_exempt
 @login_required
 def create_well(request):
+    print("create")
     if request.method == 'POST':
         try:
+            #request_context = RequestContext(request)
             depth = float(request.POST.get('depth', 0))
+            name = request.POST.get('name')
 
             well = Well.objects.create(
                 depth=depth,
                 user=request.user   # 👈 IMPORTANT
             )
+            print(well.well_id)
 
-            return JsonResponse({
-                'status': 'success',
-                'well_id': str(well.well_id)
-            })
+            return redirect('home')
 
         except Exception as e:
+            print(str(e))
             return JsonResponse({'status': 'fail', 'reason': str(e)})
 
     return JsonResponse({'status': 'fail', 'reason': 'POST required'})

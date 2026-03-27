@@ -64,7 +64,7 @@
 <div class="section">
     <h3>Create New Well</h3>
 
-    <form method="POST">
+    <form method="POST" action="new_well/">
         {% csrf_token %}
 
         <input type="text" name="name" placeholder="Well name" required><br><br>

@@ -1,13 +1,18 @@
 <style>
     #logout {
-            text-align: right;
-        }
+       text-align: right;
+    }
+    #signup {
+        text-align: end;
+    }
 </style>
+<h1>Well in that case</h1>
 {% if user.is_authenticated%}
     <p>Hi, {{user.username}} :)</p>
     <a href="logout/" id="logout">Log Out</a>
 {%else%}
-    <p>You are not logged in</p>
-    <a href="{% url 'login' %}">Login</a>
+    <h3>Welcome</h3>
+    <a href="login/">Login</a>
+    <a href="signup/" id="signup">Sign Up</a>
 {%endif%}
 <hr>
