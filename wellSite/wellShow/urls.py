@@ -12,5 +12,8 @@ urlpatterns = [
     path('create/', views.create_well, name='create'),
     path('home/logout/', views.logout_view, name='logout'),
     path('logout/', views.logout_view, name='logout'),
-    path('home/new_well/', views.create_well, name='well')
+    path('home/new_well/', views.create_well, name='well'),
+    path('inbox/', views.inbox, name='inbox'),
+    path('event/<int:event_id>/resolve/', views.resolve_event, name='resolve_event'),
+    path('event/<int:event_id>/create/', views.create_well_from_event, name='create_well_from_event'),
 ]

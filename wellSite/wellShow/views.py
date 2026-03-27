@@ -4,10 +4,11 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import *
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
+from django.contrib.auth.models import User
+
 
 
 
@@ -57,32 +58,97 @@ def home(request):
 # 📥 Receive record (JSON POST)
 #@login_required
 @csrf_exempt
+@login_required
+def inbox(request):
+    events = Event.objects.order_by('-created_at')[:50]
+
+    return render(request, 'inbox.html', {
+        'events': events
+    })
+from django.views.decorators.http import require_POST
+
+@require_POST
+@login_required
+def resolve_event(request, event_id):
+    event = Event.objects.get(id=event_id)
+    event.resolved = True
+    event.save()
+    return redirect('inbox')
+
+
+@require_POST
+@login_required
+def create_well_from_event(request, event_id):
+    event = Event.objects.get(id=event_id)
+
+    name = request.POST.get('name')
+    depth = request.POST.get('depth')
+
+    if event.well_id_value:
+        Well.objects.get_or_create(
+            well_id=event.well_id_value,
+            defaults={
+                'name': name,
+                'depth': float(depth),
+                'user': request.user
+            }
+        )
+
+    event.resolved = True
+    event.save()
+
+    return redirect('inbox')
+
+@csrf_exempt
 def receive_record(request):
     if request.method == 'POST':
         try:
             body = json.loads(request.body)
 
-            rec_diff = float(body['distance'])
-            rec_well = body['well']
+            rec_diff = float(body.get('distance'))
+            rec_well = int(body.get('well'))
 
-            # 👇 only allow user's own wells
-            well = Well.objects.get(well_id=rec_well)
-            if (rec_diff > well.depth):
-                return JsonResponse({'message': 'To deep for that well'})
+            try:
+                # ✅ Try to find the well
+                well = Well.objects.get(well_id=rec_well)
+
+            except Well.DoesNotExist:
+                # 🔴 Log event instead of creating well
+                Event.objects.create(
+                    event_type='warning',
+                    message=f"Unknown well ID received: {rec_well}",
+                    well_id_value=rec_well
+                )
+
+                return JsonResponse({
+                    'status': 'unknown_well',
+                    'well_id': rec_well
+                })
+
+            # ✅ Save record if well exists
             Record.objects.create(
                 well_rec=well,
                 diff=rec_diff
             )
 
-            return JsonResponse({'message': 'Success'})
+            return JsonResponse({
+                'status': 'ok',
+                'well_id': rec_well
+            })
 
-        except Well.DoesNotExist:
-            return JsonResponse({'message': 'No such well for this user'})
         except Exception as e:
-            return JsonResponse({'message': str(e)})
+            # 🔴 Log unexpected errors
+            Event.objects.create(
+                event_type='error',
+                message=str(e)
+            )
 
-    return JsonResponse({'message': 'POST required'})
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            })
 
+    return JsonResponse({'status': 'POST required'})
 # ➕ Create new well
 
 @csrf_exempt
@@ -139,7 +205,7 @@ def signup_view(request):
 
         try:
             User.objects.create_user(username=username, password=password)
-            user = User.objects.get(username=username)
+            user = User.objects.get(username='arduino')
             login(request, user)
             return redirect('home')
         except:
