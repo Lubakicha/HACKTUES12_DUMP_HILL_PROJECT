@@ -26,23 +26,48 @@
 
         canvas {
             width: 100%;
-            max-width: 1200px;   /* increase this */
-            height: 500px;       /* 👈 controls height */
-            display: block;
+            height: 500px;
+        }
+
+        /* Layout for chart + menu */
+        .chart-container {
+            width: 90%;
             margin: auto;
-}
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        /* Critical panel */
+        .side-panel {
+            width: 250px;
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        /* Dropdown styling */
+        details {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            width: 300px;
+            margin: auto;
+        }
+
+        summary {
+            font-size: 18px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
 {% include 'navbar.html' %} 
 
-{% block content %}
-{% endblock %}
-
 <h1>Your Wells</h1>
 
-<!-- 🔽 SELECT WELL -->
+<!-- SELECT WELL -->
 <div class="section">
     <form method="GET">
         <label><strong>Select Well:</strong></label><br>
@@ -63,12 +88,10 @@
     </form>
 </div>
 
-<!-- ➕ CREATE WELL -->
+<!-- CREATE WELL -->
 <div class="section">
     <details>
-        <summary style="cursor: pointer; font-weight: bold;">
-            ➕ Create New Well
-        </summary>
+        <summary>➕ Create New Well</summary>
 
         <div style="margin-top: 15px;">
             <form method="POST" action="new_well/">
@@ -85,34 +108,69 @@
 
 <hr>
 
-<!-- 📊 CHART -->
-<canvas id="wellChart"></canvas>
+<!-- CHART + SIDE MENU -->
+<div class="chart-container">
+
+    <!-- GRAPH -->
+    <div style="flex: 3;">
+        <canvas id="wellChart"></canvas>
+    </div>
+
+    <!-- CRITICAL SETTINGS -->
+    <div class="side-panel">
+        <h4>⚠️ Critical Level</h4>
+
+        <input type="number" id="criticalInput" placeholder="Enter value" style="width: 100%;"><br><br>
+
+        <button onclick="updateCritical()">Apply</button>
+    </div>
+
+</div>
 
 <script>
     const labels = JSON.parse('{{ labels|escapejs }}');
     const data = JSON.parse('{{ data|escapejs }}');
 
     const maxDepth = Number('{{ selected_well.depth|default:"100" }}');
+    const chartMax = maxDepth * 1.05;
 
     const ctx = document.getElementById('wellChart').getContext('2d');
 
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Water Level',
-                data: data,
-                borderColor: 'blue',
-                fill: true,
-                tension: 0.3
-            }]
+            datasets: [
+                {
+                    label: 'Water Level',
+                    data: data,
+                    borderColor: 'blue',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4
+                },
+                {
+                    label: 'Critical Level',
+                    data: [],
+                    borderColor: 'red',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0
+                }
+            ]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 10
+                }
+            },
             scales: {
                 y: {
                     min: 0,
-                    max: maxDepth,
+                    max: chartMax,
                     title: {
                         display: true,
                         text: 'Water Level'
@@ -127,6 +185,18 @@
             }
         }
     });
+
+    function updateCritical() {
+        const input = document.getElementById('criticalInput').value;
+        const criticalValue = Number(input);
+
+        if (isNaN(criticalValue)) return;
+
+        const criticalLine = labels.map(() => criticalValue);
+
+        chart.data.datasets[1].data = criticalLine;
+        chart.update();
+    }
 </script>
 
 </body>
