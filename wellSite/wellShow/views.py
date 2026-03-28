@@ -242,12 +242,15 @@ def signup_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        try:
-            User.objects.create_user(username=username, password=password)
-            user = User.objects.get(username='arduino')
-            login(request, user)
-            return redirect('home')
-        except:
+        if User.objects.filter(username=username).exists():
             return render(request, 'signup.html', {'error': 'User already exists'})
+
+        user = User.objects.create_user(
+            username=username,
+            password=password
+        )
+
+        login(request, user)
+        return redirect('home')
 
     return render(request, 'signup.html')
