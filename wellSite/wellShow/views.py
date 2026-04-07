@@ -22,11 +22,14 @@ def home(request):
     wells = Well.objects.filter(user=request.user).order_by('created_at')
 
     selected_well_id = request.GET.get('well')
+
+    if not selected_well_id and wells.exists():
+        selected_well_id = wells.first().device_id
     selected_well = None
 
     if selected_well_id:
         try:
-            selected_well = wells.get(well_id=selected_well_id)
+            selected_well = wells.get(device_id=selected_well_id)
         except Well.DoesNotExist:
             selected_well = None
 
@@ -76,7 +79,7 @@ def inbox(request):
 
         last_event = grouped[-1]["event"]
 
-        same_source = event.well_id_value == last_event.well_id_value
+        same_source = event.device_id_value == last_event.device_id_value
         close_in_time = abs(event.created_at - last_event.created_at) <= TIME_WINDOW
         same_type = event.event_type == last_event.event_type
         same_message = event.message == last_event.message
@@ -111,9 +114,9 @@ def create_well_from_event(request, event_id):
     depth = request.POST.get('depth')
     radius = request.POST.get('radius')
 
-    if event.well_id_value:
+    if event.device_id_value:
         Well.objects.get_or_create(
-            well_id=event.well_id_value,
+            device_id=event.device_id_value,
             defaults={
                 'name': name,
                 'depth': float(depth),
@@ -134,23 +137,29 @@ def receive_record(request):
             body = json.loads(request.body)
 
             rec_diff = float(body.get('distance'))
-            rec_well = int(body.get('well'))
+            device_id = body.get('device_id')
+
+            if not device_id:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Missing device_id'
+                })
 
             try:
                 # ✅ Try to find the well
-                well = Well.objects.get(well_id=rec_well)
+                well = Well.objects.get(device_id=device_id)
 
             except Well.DoesNotExist:
                 # 🔴 Log event instead of creating well
                 Event.objects.create(
                     event_type='warning',
-                    message=f"Unknown well ID received: {rec_well}",
-                    well_id_value=rec_well
+                    message=f"Unknown well ID received: {device_id}",
+                    device_id_value=device_id
                 )
 
                 return JsonResponse({
                     'status': 'unknown_well',
-                    'well_id': rec_well
+                    'well_id': device_id
                 })
 
             # ✅ Save record if well exists
@@ -160,17 +169,36 @@ def receive_record(request):
             if water_height < 0 or rec_diff > well.depth:
                 return JsonResponse({
                 'status': 'incorect water level',
-                'well_id': rec_well
+                'well_id': device_id
             })
             print (water_height)
             Record.objects.create(
                 well_rec=well,
                 diff=water_height
             )
+            
+
+            # 🚨 CRITICAL CHECK
+            if well.critical_level is not None:
+                if water_height < well.critical_level:
+                    if not well.alert_sent:
+                        Event.objects.create(
+                            event_type='warning',
+                            message=f"Critical level reached in well {well.name}",
+                            related_well=well,
+                            device_id_value=well.device_id
+                        )
+                        well.alert_sent = True
+                        well.save()
+                else:
+                    if well.alert_sent:
+                        well.alert_sent = False
+                        well.save()
+
 
             return JsonResponse({
                 'status': 'ok',
-                'well_id': rec_well
+                'well_id': device_id
             })
 
         except Exception as e:
@@ -190,27 +218,30 @@ def receive_record(request):
 
 @csrf_exempt
 @login_required
+@csrf_exempt
+@login_required
 def create_well(request):
-    print("create")
     if request.method == 'POST':
         try:
-            #request_context = RequestContext(request)
             depth = float(request.POST.get('depth', 0))
-            radius = float(request.POST.get('radius', 0))  # ✅ NEW
+            radius = float(request.POST.get('radius', 0))
             name = request.POST.get('name')
+            device_id = request.POST.get('device_id')
+
+            if not device_id:
+                return JsonResponse({'status': 'fail', 'reason': 'Missing device_id'})
 
             well = Well.objects.create(
-            name=name,
-            depth=depth,
-            radius=radius,  # ✅ NEW
-            user=request.user
-)
-            print(well.well_id)
+                name=name,
+                depth=depth,
+                radius=radius,
+                device_id=device_id,  # ✅ FIX
+                user=request.user
+            )
 
             return redirect('home')
 
         except Exception as e:
-            print(str(e))
             return JsonResponse({'status': 'fail', 'reason': str(e)})
 
     return JsonResponse({'status': 'fail', 'reason': 'POST required'})
@@ -254,3 +285,22 @@ def signup_view(request):
         return redirect('home')
 
     return render(request, 'signup.html')
+
+@require_POST
+@login_required
+def set_critical(request):
+    body = json.loads(request.body)
+
+    value = body.get('critical')
+    device_id = request.GET.get('well')
+
+    if value is None or device_id is None:
+        return JsonResponse({'status': 'fail'})
+
+    well = Well.objects.get(device_id=device_id, user=request.user)
+
+    well.critical_level = float(value)
+    well.alert_sent = False  # reset alert
+    well.save()
+
+    return JsonResponse({'status': 'ok'})

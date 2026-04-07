@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-d1c908il9z7+1hjfbzy+8t!f4v$mj^g#*xhs4g+6kv1wrzujk('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = 1 #False
+DEBUG = 0#False
 
 ALLOWED_HOSTS = []
 
@@ -51,6 +51,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'wellSite.urls'
+
+
 
 TEMPLATES = [
     {
@@ -110,3 +112,9 @@ ALLOWED_HOSTS = ['192.168.43.213', '127.0.0.1']
 
 LOGIN_REDIRECT_URL = "/home/"
 LOGOUT_REDIRECT_URL = "/" 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your@gmail.com'
+EMAIL_HOST_PASSWORD = 'your_app_password'
