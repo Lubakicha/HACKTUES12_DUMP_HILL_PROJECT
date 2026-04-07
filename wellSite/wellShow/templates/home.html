@@ -6,11 +6,14 @@
     <title>Your Wells</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-```
+
 <style>
     body {
         font-family: Arial;
-        margin: 60px;
+        margin: 0;
+    }
+    .content {
+        margin: 5vh 2vw;
     }
 
     h1 {
@@ -70,13 +73,14 @@
         width: 300px;
     }
 </style>
-```
-
 </head>
+
+
+
 <body>
 
 {% include 'navbar.html' %}
-
+<div class="content">
 <h1>Your Wells</h1>
 
 <div style="text-align: center; margin-bottom: 20px;">
@@ -98,7 +102,7 @@
     <form method="GET">
         <label><strong>Select Well:</strong></label><br>
 
-```
+
     <select name="well" onchange="this.form.submit()">
         <option value="">All Wells</option>
 
@@ -113,7 +117,7 @@
         {% endfor %}
     </select>
 </form>
-```
+
 
 </div>
 
@@ -123,7 +127,7 @@
     <details>
         <summary>➕ Create New Well</summary>
 
-```
+
     <form method="POST" action="new_well/">
         {% csrf_token %}
         <input type="text" name="name" placeholder="Well name" required><br><br>
@@ -132,7 +136,7 @@
         <button type="submit">Create Well</button>
     </form>
 </details>
-```
+
 
 </div>
 
@@ -140,7 +144,7 @@
 
 <div class="chart-container">
 
-```
+
 <div style="flex: 3;">
     <canvas id="wellChart"></canvas>
 </div>
@@ -153,7 +157,7 @@
     <!-- ✅ RESULT -->
     <p id="litersInfo" style="margin-top:15px; font-weight:bold;"></p>
 </div>
-```
+
 
 </div>
 
@@ -164,7 +168,7 @@
         <h3>Unknown Well</h3>
         <p id="unknownText"></p>
 
-```
+
     <input type="text" id="newWellName" placeholder="Well name"><br><br>
     <input type="number" id="newWellDepth" placeholder="Depth"><br><br>
     <input type="number" id="newWellRadius" placeholder="Radius"><br><br>
@@ -172,7 +176,7 @@
     <button onclick="createNewWell()">Create</button>
     <button onclick="closeModal()">Ignore</button>
 </div>
-```
+
 
 </div>
 
@@ -294,6 +298,6 @@ if (latestLevel < val) {
         document.getElementById('unknownWellModal').style.display = 'none';
     }
 </script>
-
+</div>
 </body>
 </html>

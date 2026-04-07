@@ -1,15 +1,88 @@
 <div class="navbar">
-    <h2>💧 Well System</h2>
-
-    <div>
-        {% if user.is_authenticated %}
-            <span>Hi, {{ user.username }}</span>
-            <a href="{% url 'home' %}">Home</a>
-            <a href="{% url 'inbox' %}">Inbox</a>
-            <a href="/logout/">Logout</a>
-        {% else %}
-            <a href="/login/">Login</a>
-            <a href="/signup/">Sign Up</a>
-        {% endif %}
-    </div>
+    
+    {% if user.is_authenticated %}
+    <ul>
+        <li>
+            <div class="line1"><h1 class="center">Well in That Case</h1></div>
+            <span class="greet">Hi, {{ user.username }}!</span>
+        </li>
+        <li><br></li>
+        <li><a href="{% url 'home' %}" class="link">Home</a></li>
+        <li><a href="{% url 'inbox' %}" class="link">Inbox</a></li>
+        <li><a href="/logout/" class="link">Logout</a></li>
+    </ul>
+    {% else %}
+    <ul>
+        <li><a href="/login/" class="link">Login</a></li>
+        <li><a href="/signup/" class="link">Sign Up</a></li>
+    </ul>
+    {% endif %}
+    
 </div>
+
+<style>
+    .navbar{
+        background-color: #0c346e;
+        width: 100%;
+    }
+
+    .line1 {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .sitename {
+        align-self: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    span.greet{
+        /*display: flex;*/
+        padding-left: 5vw;
+        padding-bottom: 5vh;
+        padding-top: 5vh;
+        color: aliceblue;
+        /*text-align: center; */
+    }
+    a.link{
+        padding: 1vh 3vw;
+        color: aliceblue;
+    }
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #0c346e;
+        /*position: fixed;*/
+        top: 0;
+        width: 100%;
+        
+        
+    }
+    
+    ul li h1.center{
+        
+        color: aliceblue;
+        padding-bottom: 0;
+    }
+
+    ul li a {
+        float: left;
+        display: block;
+        /*color: white;
+        text-align: center;
+        /*padding: 14px 16px;*/
+        text-decoration: none;
+    }
+
+    ul li a:hover:not(.active) {
+        background-color: #111;
+    }
+
+    ul li a.active {
+        background-color: #04AA6D;
+    }
+</style>
