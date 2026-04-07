@@ -17,4 +17,6 @@ urlpatterns = [
     path('event/<int:event_id>/resolve/', views.resolve_event, name='resolve_event'),
     path('event/<int:event_id>/create/', views.create_well_from_event, name='create_well_from_event'),
     path('set-critical/', views.set_critical, name='set_critical'),
+    path('check-alert/', views.check_alert),
+    path('resolve-event/<int:event_id>/', views.resolve_event, name='resolve_event'),
 ]

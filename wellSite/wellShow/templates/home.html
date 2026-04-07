@@ -143,6 +143,20 @@
 
 </div>
 
+<div id="alertPopup" style="
+    display:none;
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:red;
+    color:white;
+    padding:20px;
+    border-radius:10px;
+    z-index:9999;
+">
+    ⚠️ <span id="alertText"></span>
+</div>
+
 <script>
     const labels = JSON.parse('{{ labels|escapejs }}');
     const data = JSON.parse('{{ data|escapejs }}');
@@ -239,6 +253,32 @@
         }
     }
 
+    function checkAlerts() {
+    fetch('/check-alert/')
+        .then(res => res.json())
+        .then(data => {
+            if (data.alert) {
+                const popup = document.getElementById('alertPopup');
+                const text = document.getElementById('alertText');
+
+                text.innerText = data.message;
+                popup.style.display = 'block';
+
+                // ✅ Resolve AFTER showing
+                fetch(`/resolve-event/${data.id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRF()
+                    }
+                });
+
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 5000);
+            }
+        });
+}
+
     window.onload = function () {
 
         // restore critical line
@@ -262,9 +302,7 @@
     };
 
     // 🔁 AUTO REFRESH (optional)
-    setInterval(() => {
-        location.reload();
-    }, 5000);
+    setInterval(checkAlerts, 5000);
 
 </script>
 

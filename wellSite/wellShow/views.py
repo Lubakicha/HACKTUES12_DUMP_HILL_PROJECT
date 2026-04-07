@@ -304,3 +304,24 @@ def set_critical(request):
     well.save()
 
     return JsonResponse({'status': 'ok'})
+
+@login_required
+def check_alert(request):
+    latest = Event.objects.filter(
+        event_type='warning',
+        resolved=False
+    ).order_by('-created_at').first()
+
+    if latest:
+        return JsonResponse({
+            'alert': True,
+            'message': latest.message,
+            'id': latest.id
+})
+
+        return JsonResponse({
+            'alert': True,
+            'message': latest.message
+        })
+
+    return JsonResponse({'alert': False})
