@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import timedelta
 from django.views.decorators.http import require_POST
-
+from django.utils.timezone import now
 
 def logout_view(request):
     logout(request)
@@ -49,12 +49,24 @@ def home(request):
     labels = [r.created_at.strftime("%H:%M:%S") for r in records]
     data = [r.diff for r in records]
 
+    is_critical = False
+
+    if selected_well and selected_well.critical_level is not None:
+        latest_record = Record.objects.filter(
+            well_rec=selected_well
+        ).order_by('-created_at').first()
+
+        if latest_record:
+            if latest_record.diff < selected_well.critical_level:
+                is_critical = True
+
     context = {
-        'wells': wells,
-        'selected_well': selected_well,
-        'labels': json.dumps(labels),
-        'data': json.dumps(data),
-    }
+    'wells': wells,
+    'selected_well': selected_well,
+    'labels': json.dumps(labels),
+    'data': json.dumps(data),
+    'is_critical': is_critical,  # 🔥 THIS LINE IS CRITICAL
+}
 
     return render(request, 'home.html', context)
 # 📥 Receive record (JSON POST)
@@ -325,3 +337,16 @@ def check_alert(request):
         })
 
     return JsonResponse({'alert': False})
+
+@login_required
+def check_new_data(request):
+    latest = Record.objects.filter(
+        well_rec__user=request.user
+    ).order_by('-created_at').first()
+
+    if latest:
+        return JsonResponse({
+            'timestamp': latest.created_at.timestamp()
+        })
+
+    return JsonResponse({'timestamp': None})

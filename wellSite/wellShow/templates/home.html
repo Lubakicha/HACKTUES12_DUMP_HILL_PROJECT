@@ -6,18 +6,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body {
-            font-family: Arial;
-            margin: 60px;
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        .section {
-            margin-bottom: 30px;
-        }
+        body { font-family: Arial; margin: 60px; }
+        h1 { text-align: center; }
+        .section { margin-bottom: 30px; }
 
         input, select, button {
             padding: 8px;
@@ -49,23 +40,6 @@
             border-radius: 10px;
             width: 300px;
             margin: auto;
-        }
-
-        #unknownWellModal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-        }
-
-        #unknownWellModal div {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
         }
     </style>
 </head>
@@ -143,6 +117,7 @@
 
 </div>
 
+<!-- 🚨 POPUP -->
 <div id="alertPopup" style="
     display:none;
     position:fixed;
@@ -154,7 +129,17 @@
     border-radius:10px;
     z-index:9999;
 ">
-    ⚠️ <span id="alertText"></span>
+    <div style="display:flex; justify-content:space-between;">
+        <strong>⚠️ Alert</strong>
+        <button onclick="closePopup()" style="
+            background:none;
+            border:none;
+            color:white;
+            font-size:18px;
+            cursor:pointer;
+        ">✖</button>
+    </div>
+    <div id="alertText"></div>
 </div>
 
 <script>
@@ -210,27 +195,24 @@
     });
 
     function updateCritical() {
-    const val = Number(document.getElementById('criticalInput').value);
-    if (isNaN(val)) return;
+        const val = Number(document.getElementById('criticalInput').value);
+        if (isNaN(val)) return;
 
-    const selectedWell = new URLSearchParams(window.location.search).get('well');
+        const selectedWell = new URLSearchParams(window.location.search).get('well');
 
-    fetch(`/set-critical/?well=${selectedWell}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRF()
-        },
-        body: JSON.stringify({ critical: val })
-    }).then(() => {
-    chart.data.datasets[1].data = labels.map(() => val);
-    chart.update();
-
-    updateLitersInfo(val);
-
-    document.getElementById('litersInfo').innerText = "✅ Critical level saved!";
-});
-}
+        fetch(`/set-critical/?well=${selectedWell}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRF()
+            },
+            body: JSON.stringify({ critical: val })
+        }).then(() => {
+            chart.data.datasets[1].data = labels.map(() => val);
+            chart.update();
+            updateLitersInfo(val);
+        });
+    }
 
     function updateLitersInfo(criticalVal = savedCritical) {
         const info = document.getElementById('litersInfo');
@@ -253,35 +235,34 @@
         }
     }
 
-    function checkAlerts() {
-    fetch('/check-alert/')
-        .then(res => res.json())
-        .then(data => {
-            if (data.alert) {
-                const popup = document.getElementById('alertPopup');
-                const text = document.getElementById('alertText');
+    function showPopup(message) {
+        const popup = document.getElementById('alertPopup');
+        const text = document.getElementById('alertText');
 
-                text.innerText = data.message;
-                popup.style.display = 'block';
+        text.innerText = message;
+        popup.style.display = 'block';
 
-                // ✅ Resolve AFTER showing
-                fetch(`/resolve-event/${data.id}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCSRF()
-                    }
-                });
+        localStorage.setItem("popupVisible", "true");
+        localStorage.setItem("popupMessage", message);
+    }
 
-                setTimeout(() => {
-                    popup.style.display = 'none';
-                }, 5000);
-            }
-        });
-}
+    function closePopup() {
+        document.getElementById('alertPopup').style.display = 'none';
+
+        localStorage.removeItem("popupVisible");
+        localStorage.removeItem("popupMessage");
+    }
 
     window.onload = function () {
 
-        // restore critical line
+        // 🔁 RESTORE POPUP
+        const savedPopup = localStorage.getItem("popupVisible");
+        const savedMessage = localStorage.getItem("popupMessage");
+
+        if (savedPopup === "true") {
+            showPopup(savedMessage);
+        }
+
         if (savedCritical !== null) {
             document.getElementById('criticalInput').value = savedCritical;
             chart.data.datasets[1].data = labels.map(() => savedCritical);
@@ -290,19 +271,40 @@
 
         updateLitersInfo();
 
-        // 🚨 SMART POPUP (no spam)
-        if (isCritical && !localStorage.getItem("alertShown")) {
-            alert("⚠️ Critical water level reached!");
-            localStorage.setItem("alertShown", "true");
-        }
-
-        if (!isCritical) {
-            localStorage.removeItem("alertShown");
+        // 🚨 TRIGGER
+        if (isCritical) {
+            if (!localStorage.getItem("popupVisible")) {
+                showPopup("⚠️ Critical water level reached!");
+            }
+        } else {
+            localStorage.removeItem("popupVisible");
+            localStorage.removeItem("popupMessage");
         }
     };
+    let lastTimestamp = null;
 
-    // 🔁 AUTO REFRESH (optional)
-    setInterval(checkAlerts, 5000);
+function checkForUpdates() {
+    fetch('/check-new-data/')
+        .then(res => res.json())
+        .then(data => {
+
+            if (!data.timestamp) return;
+
+            if (lastTimestamp === null) {
+                lastTimestamp = data.timestamp;
+                return;
+            }
+
+            if (data.timestamp !== lastTimestamp) {
+                window.location.reload();
+            }
+        });
+}
+
+// check every 5 seconds
+setInterval(checkForUpdates, 5000);
+    // 🔁 AUTO RELOAD
+
 
 </script>
 
