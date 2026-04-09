@@ -6,12 +6,26 @@
 <body>
 
 
-{% include 'navbar.html' %} 
-    {% block content %}
-    
-    {% endblock%}
+{% include 'navbar.html' %}
+    <div class="content">
+        <h2>About Us</h2>
+        <br>
+        <p>A system to help you manage your wells</p>
+    </div>
 
 
 
 </body>
+
+<style>
+    body {
+        font-family: Arial;
+        margin: 0;
+    }
+
+    .content {
+        margin: 60px;
+    }
+</style>
+
 </html>

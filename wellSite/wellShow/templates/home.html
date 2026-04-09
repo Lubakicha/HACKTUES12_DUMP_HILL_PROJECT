@@ -6,8 +6,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body { font-family: Arial; margin: 60px; }
-        h1 { text-align: center; }
+        body { 
+            font-family: Arial;
+            margin: 0;
+        }
+        .content {
+            margin: 60px;
+        }
+        h2 { text-align: center; }
         .section { margin-bottom: 30px; }
 
         input, select, button {
@@ -47,10 +53,10 @@
 <body>
 
 {% include 'navbar.html' %}
+<div class="content">
+<h2>Your Wells</h2>
 
-<h1>Your Wells</h1>
-
-<div style="text-align: center; margin-bottom: 20px;">
+<!--div style="text-align: center; margin-bottom: 20px;">
     <a href="{% url 'inbox' %}" style="
         background: #007bff;
         color: white;
@@ -60,7 +66,7 @@
         font-weight: bold;">
         📥 Inbox
     </a>
-</div>
+</div-->
 
 <!-- SELECT WELL -->
 <div class="section">
@@ -307,6 +313,6 @@ setInterval(checkForUpdates, 5000);
 
 
 </script>
-
+</div>
 </body>
 </html>

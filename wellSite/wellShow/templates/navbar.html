@@ -1,88 +1,76 @@
 <div class="navbar">
-    
-    {% if user.is_authenticated %}
-    <ul>
-        <li>
-            <div class="line1"><h1 class="center">Well in That Case</h1></div>
-            <span class="greet">Hi, {{ user.username }}!</span>
-        </li>
-        <li><br></li>
-        <li><a href="{% url 'home' %}" class="link">Home</a></li>
-        <li><a href="{% url 'inbox' %}" class="link">Inbox</a></li>
-        <li><a href="/logout/" class="link">Logout</a></li>
-    </ul>
-    {% else %}
-    <ul>
-        <li><a href="/login/" class="link">Login</a></li>
-        <li><a href="/signup/" class="link">Sign Up</a></li>
-    </ul>
-    {% endif %}
-    
-</div>
 
+<ul>
+    <li><div class="sitename"><h1 class="center">Well in That Case</h1></div></li>
+{% if user.is_authenticated %}
+    <li><a href="{% url 'home' %}">Home</a></li>
+    <li><a href="{% url 'inbox' %}">Inbox</a></li>
+    <li><a href="{% url 'logout' %}">Logout</a></li>
+    <li><span class="greet">Hi, {{ user.username }}!</span></li>
+{% else %}
+    <li><a href="{% url 'login' %}" class="link">Login</a></li>
+    <li><a href="{% url 'signup' %}" class="link">Sign Up</a></li>
+{% endif %}
+</ul>
+</div>
 <style>
     .navbar{
         background-color: #0c346e;
         width: 100%;
     }
 
-    .line1 {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
     .sitename {
-        align-self: center;
         display: flex;
         justify-content: center;
         align-items: center;
+        color: aliceblue;
+        padding-bottom: 0;
     }
 
     span.greet{
+        padding: 1vh 0 1vh 20vw;
         /*display: flex;*/
-        padding-left: 5vw;
+        /*padding-left: 5vw;
         padding-bottom: 5vh;
         padding-top: 5vh;
         color: aliceblue;
-        /*text-align: center; */
+        text-align: center; */
     }
-    a.link{
-        padding: 1vh 3vw;
-        color: aliceblue;
-    }
+
     ul {
         list-style-type: none;
         margin: 0;
         padding: 0;
         overflow: hidden;
         background-color: #0c346e;
-        /*position: fixed;*/
-        top: 0;
-        width: 100%;
-        
-        
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
-    
-    ul li h1.center{
-        
+
+    ul li {
+        float: left;
         color: aliceblue;
-        padding-bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0 6vw 0 0;
     }
 
     ul li a {
-        float: left;
+        padding: 1vh 3vw;
+        color: aliceblue;
         display: block;
-        /*color: white;
-        text-align: center;
-        /*padding: 14px 16px;*/
         text-decoration: none;
     }
 
     ul li a:hover:not(.active) {
-        background-color: #111;
+        /*background-color: #0f4696;*/
+        color: #c4d8f5;
+        text-decoration: underline;
     }
 
     ul li a.active {
-        background-color: #04AA6D;
+        background-color: #1c57ad;
     }
 </style>

@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <title>Inbox</title>
     <link rel="stylesheet" href="base.css"></head>
-    {% include 'navbar.html' %}
     <style>
         body {
             font-family: Arial;
+            margin: 0;
+        }
+        .content {
             margin: 60px;
         }
 
@@ -73,7 +75,9 @@
     </style>
 </head>
 <body>
+{% include 'navbar.html' %}
 
+<div class="content">
 <div class="top-bar">
     <h1>📥 System Inbox</h1>
 </div>
@@ -160,6 +164,6 @@ function toggleForm(id) {
     }
 }
 </script>
-
+</div>
 </body>
 </html>
