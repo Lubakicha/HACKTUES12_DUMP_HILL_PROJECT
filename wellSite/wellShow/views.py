@@ -147,10 +147,9 @@ def receive_record(request):
     if request.method == 'POST':
         try:
             body = json.loads(request.body)
-
             rec_diff = float(body.get('distance'))
             device_id = body.get('device_id')
-
+            print(body)
             if not device_id:
                 return JsonResponse({
                     'status': 'error',

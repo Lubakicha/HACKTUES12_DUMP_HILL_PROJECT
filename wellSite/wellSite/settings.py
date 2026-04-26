@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-d1c908il9z7+1hjfbzy+8t!f4v$mj^g#*xhs4g+6kv1wrzujk('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = 0#False
+DEBUG = 1#False
 
 ALLOWED_HOSTS = []
 
@@ -109,7 +109,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-ALLOWED_HOSTS = ['192.168.43.76', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.43.76', '127.0.0.1', '0.0.0.0']
 
 LOGIN_REDIRECT_URL = "/home/"
 LOGOUT_REDIRECT_URL = "/" 
