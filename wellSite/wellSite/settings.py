@@ -95,8 +95,9 @@ AUTH_PASSWORD_VALIDATORS = []
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Europe/Sofia'
+USE_TZ = True
 
-TIME_ZONE = 'UTC' 
 
 USE_I18N = True
 
@@ -108,7 +109,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-ALLOWED_HOSTS = ['192.168.43.213', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.43.76', '127.0.0.1']
 
 LOGIN_REDIRECT_URL = "/home/"
 LOGOUT_REDIRECT_URL = "/" 

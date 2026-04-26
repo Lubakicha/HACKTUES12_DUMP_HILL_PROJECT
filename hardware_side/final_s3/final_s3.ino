@@ -11,10 +11,10 @@
 #define PIN_MISO  13
 #define PIN_MOSI  11
 
-const char* device_id="ABCDE";
+const char* device_id="iiiii";
 const char* ssid = "Home45"; 
 const char* password = "ObichamNikola";
-const char* server = "http://192.168.43.213:8000/receive";
+const char* server = "http://192.168.43.213:8888/receive";
 
 CC1101 radio=new Module(PIN_CSN, PIN_GDO0, RADIOLIB_NC, PIN_GDO2);
 uint8_t buf[64];
